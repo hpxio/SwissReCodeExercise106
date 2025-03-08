@@ -14,7 +14,6 @@ public class FileUtil {
 
     public List<Employee> readFileContent(String path) {
         List<Employee> employees = new ArrayList<>();
-
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             /*skip header line */
             String line = br.readLine();
@@ -27,7 +26,6 @@ public class FileUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         return employees;
     }
 

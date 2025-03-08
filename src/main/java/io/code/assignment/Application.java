@@ -1,73 +1,58 @@
 package io.code.assignment;
 
 import io.code.assignment.model.Employee;
+import io.code.assignment.model.Hierarchy;
+import io.code.assignment.service.EmployeeService;
+import io.code.assignment.service.EmployeeServiceImpl;
+import io.code.assignment.service.SalaryService;
+import io.code.assignment.service.SalaryServiceImpl;
 import io.code.assignment.util.FileUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Application {
+
+    private static final String FILE_PATH = "src/main/resources/input.csv";
+
     public static void main(String[] args) {
 
-        /* read file content, get all employee in one place */
-        FileUtil fileUtil = new FileUtil();
-        List<Employee> employees = fileUtil.readFileContent("src/main/resources/input.csv");
+        List<Employee> dataFromFile =
+                new FileUtil().readFileContent(FILE_PATH);
+
+        /* prepare employee details from input file */
+        EmployeeService employeeService =
+                new EmployeeServiceImpl(dataFromFile);
+
+        /* prepare consolidated data Hierarchy for processing */
+        Map<Integer, Employee> allEmployees = employeeService.getAllEmployees();
+        Map<Integer, List<Employee>> employeesByManager = employeeService.getEmployeesByManager();
+        Hierarchy hierarchy = new Hierarchy(allEmployees, employeesByManager);
 
 
-        /* get all employees for each manager */
-        Map<Integer, List<Employee>> managers = new HashMap<>();
-        employees.forEach(e -> {
-            Integer managerId = e.getManagerId();
-            if (managerId != 0) {
-                if (!managers.containsKey(managerId)) {
-                    managers.put(managerId, new ArrayList<>());
-                }
-                managers.get(managerId).add(e);
-            }
-        });
+        /* print final results */
+        printSalaryCalculationResult(hierarchy);
+        printDepthCalculationResult(allEmployees);
+    }
 
+    private static void printDepthCalculationResult(Map<Integer, Employee> allEmployees) {
+        System.out.println("Employess that have long reporting line:");
+        allEmployees.values().stream().filter(v -> v.getDepth() > 4)
+                .toList().forEach(e ->
+                        System.out.println(e.getFirstName() + " by " + e.getDepth()));
+    }
 
-        /* pre-calculate depth and populate each employee */
-        Map<Integer, Employee> employeeMap = new HashMap<>();
-        employees.forEach(e -> employeeMap.put(e.getId(), e));
+    private static void printSalaryCalculationResult(Hierarchy hierarchy) {
+        /* initiate salary-calculations & print results */
+        SalaryService salaryService =
+                new SalaryServiceImpl(hierarchy);
 
-        employees.forEach(e -> {
-            int depth = 0;
-            Integer managerId = e.getManagerId();
-            while (managerId != 0) {
-                depth++;
-                Employee manager = employeeMap.get(managerId);
-                if (manager == null) break;
-                managerId = manager.getManagerId();
-            }
-            e.setDepth(depth);
-        });
+        System.out.println("Manager that are earning less:");
+        salaryService.getManagersEarningLess().forEach((key, value) ->
+                System.out.println(key.getFirstName() + " by " + value));
 
-
-        managers.forEach((mgrId, eList) -> {
-            double avg = eList.stream()
-                    .mapToInt(Employee::getSalary)
-                    .average()
-                    .orElse(0.0);
-
-            double avg20P = avg * 1.2;
-            double avg50P = avg * 1.5;
-
-            Employee mgr = employeeMap.get(mgrId);
-            int mgrSal = mgr.getSalary();
-
-            if (mgrSal > avg20P && mgrSal <= avg50P) {
-                System.out.println("Manager: " + mgr.getFirstName() + " (ID: " + mgrId + ") - OK");
-            } else if (mgrSal < avg20P) {
-                System.out.println("Manager: " + mgr.getFirstName() + " (ID: " + mgrId + ") - Earning Less");
-                System.out.println("Shortfall: " + (avg20P - mgrSal));
-            } else if (mgrSal > avg50P) {
-                System.out.println("Manager: " + mgr.getFirstName() + " (ID: " + mgrId + ") - Earning More");
-                System.out.println("Excess: " + (mgrSal - avg50P));
-            }
-        });
+        System.out.println("Manager that are earning more:");
+        salaryService.getManagersEarningMore().forEach((key, value) ->
+                System.out.println(key.getFirstName() + " by " + value));
     }
 }

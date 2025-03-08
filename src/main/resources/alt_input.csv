@@ -1,0 +1,17 @@
+Id,firstName,lastName,salary,managerId
+101,John,Smith,100000,
+102,Jane,Doe,85000,101
+103,Robert,Brown,40000,102
+104,Emily,White,38000,103
+105,Michael,Green,35000,104
+106,Linda,Black,30000,105
+107,David,Gray,20000,106
+108,Susan,Blue,18000,107
+109,Karen,Purple,15000,108
+201,Adam,Red,90000,101
+202,Sophia,Orange,45000,201
+203,Liam,Yellow,50000,202
+204,Olivia,Pink,47000,202
+205,Noah,Gold,100000,101
+206,Emma,Silver,49000,205
+207,Lucas,Teal,51000,205

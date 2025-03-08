@@ -9,7 +9,8 @@ public class Employee {
     private Integer managerId;
     private Integer depth = -1;
 
-    public Employee(Integer id, String firstName, String lastName, Integer salary, Integer managerId) {
+    public Employee(Integer id, String firstName, String lastName,
+                    Integer salary, Integer managerId) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
